@@ -1,0 +1,56 @@
+{
+  "name": "@kelpgate/client",
+  "version": "0.1.0",
+  "description": "Node.js client for the Kelpgate malware-scanning API: scan files and URLs, sync or async, with a CLI and Express middleware.",
+  "license": "GPL-2.0-or-later",
+  "author": "JustBots Labs",
+  "homepage": "https://github.com/JustBots-Labs/kelpgate-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustBots-Labs/kelpgate-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JustBots-Labs/kelpgate-node/issues"
+  },
+  "keywords": ["kelpgate", "antivirus", "malware", "virus-scan", "clamav", "yara", "upload", "express", "multer"],
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./index.d.ts", "default": "./index.mjs" },
+      "require": { "types": "./index.d.ts", "default": "./index.js" }
+    },
+    "./express": {
+      "import": { "types": "./express.d.ts", "default": "./express.mjs" },
+      "require": { "types": "./express.d.ts", "default": "./express.js" }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kelpgate": "./bin/kelpgate.js"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "express.js",
+    "express.mjs",
+    "express.d.ts",
+    "lib/",
+    "bin/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "node --test test/client.test.js test/express.test.js test/cli.test.js",
+    "typecheck": "tsc --noEmit -p test/types/tsconfig.json"
+  }
+}
