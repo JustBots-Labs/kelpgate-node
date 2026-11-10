@@ -10,7 +10,8 @@
     "url": "git+https://github.com/JustBots-Labs/kelpgate-node.git"
   },
   "bugs": {
-    "url": "https://github.com/JustBots-Labs/kelpgate-node/issues"
+    "url": "https://github.com/JustBots-Labs/kelpgate-node/issues",
+    "email": "support@kelpgate.cloud"
   },
   "keywords": ["kelpgate", "antivirus", "malware", "virus-scan", "clamav", "yara", "upload", "express", "multer"],
   "engines": {
