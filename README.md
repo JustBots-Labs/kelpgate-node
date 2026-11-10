@@ -2,6 +2,8 @@
 
 Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. Scan uploaded files or remote URLs, get a verdict, and keep infected files out of your app.
 
+> This package is open source under GPL-2.0-or-later. It is a client for the Kelpgate scanning service, a hosted commercial product that is not part of this package. You need a Kelpgate account to use it.
+
 - No runtime dependencies. Node 18 or newer. CommonJS and ESM, with TypeScript types.
 - Handles the OAuth2 token for you (cached, renewed before it expires).
 - Retries transient failures; typed errors for quota, size, file type and rate limits.
