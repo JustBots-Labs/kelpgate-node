@@ -103,6 +103,10 @@ npx kelpgate health
 
 Exit code `0` clean, `1` infected, `2` error. Add `--json` for machine-readable output.
 
-## Licence
+## Contributing and security
+
+Bug reports and pull requests are welcome; see the [contributing guide](https://github.com/JustBots-Labs/.github/blob/main/CONTRIBUTING.md). To report a vulnerability, follow the [security policy](https://github.com/JustBots-Labs/.github/blob/main/SECURITY.md) and report it privately. For help, see [getting help](https://github.com/JustBots-Labs/.github/blob/main/SUPPORT.md).
+
+## License
 
 GPL-2.0-or-later, the same as the Kelpgate WordPress plugin and Drupal module. Note that the GPL applies to software you distribute that includes this package; using it on your own server does not require you to publish your code.
