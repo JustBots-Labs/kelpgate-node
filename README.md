@@ -107,7 +107,7 @@ Exit code `0` clean, `1` infected, `2` error. Add `--json` for machine-readable 
 
 ## Contributing and security
 
-Bug reports and pull requests are welcome; see the [contributing guide](https://github.com/JustBots-Labs/.github/blob/main/CONTRIBUTING.md). To report a vulnerability, follow the [security policy](https://github.com/JustBots-Labs/.github/blob/main/SECURITY.md) and report it privately. For help, see [getting help](https://github.com/JustBots-Labs/.github/blob/main/SUPPORT.md).
+Bug reports and pull requests are welcome; see the [contributing guide](https://github.com/KelpGate/.github/blob/main/CONTRIBUTING.md). To report a vulnerability, follow the [security policy](https://github.com/KelpGate/.github/blob/main/SECURITY.md) and report it privately. For help, see [getting help](https://github.com/KelpGate/.github/blob/main/SUPPORT.md).
 
 ## License
 
