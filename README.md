@@ -1,13 +1,31 @@
 # @kelpgate/client
 
-Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. Scan uploaded files or remote URLs, get a verdict, and keep infected files out of your app.
+**Check every upload for malware before your app stores it.**
+
+Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. Scan uploaded files or remote URLs, get a verdict, and keep infected files out of your app. It includes Express middleware and a command line tool.
 
 > This package is open source under GPL-2.0-or-later. It is a client for the Kelpgate scanning service, a hosted commercial product that is not part of this package. You need a Kelpgate account to use it.
 
-- No runtime dependencies. Node 18 or newer. CommonJS and ESM, with TypeScript types.
-- Handles the OAuth2 token for you (cached, renewed before it expires).
-- Retries transient failures; typed errors for quota, size, file type and rate limits.
-- Express/Multer middleware and a `kelpgate` command line tool included.
+## Contents
+
+[Why Kelpgate](#why-kelpgate) · [How it works](#how-it-works) · [Install](#install) · [Quick start](#quick-start) · [Scanning](#scanning) · [Errors](#errors) · [Options](#options) · [Express](#express) · [Command line](#command-line) · [Failure policy](#failure-policy) · [Security and privacy](#security-and-privacy) · [Compatibility](#compatibility) · [Verify your setup](#verify-your-setup) · [Troubleshooting](#troubleshooting) · [Support and versioning](#support-and-versioning) · [Contributing and security](#contributing-and-security) · [License](#license)
+
+## Why Kelpgate
+
+| | |
+| --- | --- |
+| **One call per file** | Send a file, a buffer, a stream or a URL and get a verdict back. An infected file is a normal result, not an exception. |
+| **Credentials handled for you** | The OAuth 2.0 access token is fetched, cached in memory and renewed before it expires. |
+| **Predictable failure behaviour** | Typed errors for quota, size, file type, rate limits and network problems. You choose what happens when the scanner cannot answer: block or allow. |
+| **Safe by default** | API and token URLs must use HTTPS, redirects are never followed, and secrets never appear in errors. |
+| **Ready for your stack** | Express and Multer middleware, a command line tool, CommonJS and ESM, and TypeScript types. |
+| **Light** | No runtime dependencies. |
+
+## How it works
+
+1. The client obtains an OAuth 2.0 access token with your client credentials. Tokens are cached and renewed shortly before they expire.
+2. The file is sent to the scanning API over HTTPS.
+3. The API answers with a verdict. A clean file and an infected file (HTTP 406) both come back as a result with `infected` set to `false` or `true`. Anything that stops a verdict, such as an exhausted quota or an unreachable service, is thrown as a typed error. Your code, or the middleware, decides what to do next.
 
 ## Install
 
@@ -109,9 +127,55 @@ npx kelpgate health
 
 Exit code `0` clean, `1` infected, `2` error. Add `--json` for machine-readable output.
 
+## Failure policy
+
+When the scanner cannot give a verdict, the client throws a typed error. The Express middleware turns that into a decision you control with `onError`.
+
+| Situation | Client | Middleware, `onError: 'block'` (default) | Middleware, `onError: 'allow'` |
+| --- | --- | --- | --- |
+| Scanner unreachable, timed out or returned 5xx after retries | Throws `NetworkError`, `TimeoutError` or `ServerError` | Request rejected with `503` | Request continues; the error is in `req.kelpgateError` |
+| Authentication fails | Throws `AuthError` | `503` | Continues |
+| Plan quota used up | Throws `QuotaExceededError` | `402` | Continues |
+| File over the plan limit or `maxBytes` | Throws `PayloadTooLargeError` | `413` | Continues |
+| File type not allowed | Throws `UnsupportedFileError` | `415` | Continues |
+
+Choose `block` where stopping malware matters more than availability, and `allow` where uploads must keep working during an outage. A retry sends the whole file again. Streams are buffered in memory before they are sent, so for very large files prefer a path.
+
+## Security and privacy
+
+- **What leaves your server:** the uploaded file and its file name, sent over HTTPS to the API URL you configure. Nothing else about your application is sent.
+- **Transport:** API and token endpoints must use HTTPS (plain HTTP is accepted only for `localhost`). Redirects are never followed.
+- **Secrets:** the client secret never appears in error messages or when a client is serialised. Keep it in an environment variable or a secrets manager, not in source control.
+- **Token handling:** access tokens are kept in memory only, never written to disk, and refreshed ahead of expiry. A rejected token is discarded and retried once.
+- **Nothing stored locally:** the package writes nothing to disk. The Express middleware deletes infected files that Multer saved.
+- **Data kept by the service:** files that scan clean are kept briefly and infected files are quarantined, according to your Kelpgate plan. That is the service's behaviour, not this package's.
+
 ## Compatibility
 
 Node 18, 20, 22 and 24, tested in CI on every change. The package has no runtime dependencies, works with both `require` and `import`, and ships TypeScript types that are type-checked in CI.
+
+## Verify your setup
+
+Download the standard EICAR test file from [eicar.org](https://www.eicar.org/download-anti-malware-testfile/). It is a harmless file that every scanner treats as a virus.
+
+```bash
+npx kelpgate scan ./eicar.com
+```
+
+The scan should report `INFECTED` and exit with code `1`. Then scan any ordinary file and confirm it reports `clean` and exits with `0`.
+
+## Troubleshooting
+
+| Symptom | Likely cause |
+| --- | --- |
+| `ConfigError`: must use https | `apiUrl` or `tokenUrl` is not HTTPS. Plain HTTP works only for `localhost`. |
+| `AuthError` with code `TOKEN_REQUEST_FAILED` | The client ID or secret is wrong, or the API client does not have the `scan` scope. |
+| `AuthError` with status 403 | The organisation is suspended, or the API client is not linked to an organisation. |
+| `QuotaExceededError` | The plan's scan quota is used up. The error carries an `upgradeUrl`. |
+| `RateLimitedError`, or slow scans under load | Too many scans at once. The client retries and honours `Retry-After`; lower your concurrency. |
+| `PayloadTooLargeError` | The file is over the plan limit or the client's `maxBytes`. |
+| `TimeoutError` on large files | Raise `timeoutMs`, or use `scanFileAsync` and `waitForResult`. |
+| Clean results with `degraded: true` | An engine did not finish for that scan. The result is still valid; coverage was reduced. |
 
 ## Support and versioning
 
