@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- `scanBytes` is the name for scanning bytes in memory, matching the other Kelpgate clients (see the [Kelpgate client standard](https://github.com/KelpGate/.github/blob/main/docs/client-standard.md)). `scanBuffer` still works as an alias.
+
 ## 0.1.1
 
 - Package metadata: author is JustBots Labs, and the repository, homepage and issue links point to github.com/KelpGate/kelpgate-node. No code changes.

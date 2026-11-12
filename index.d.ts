@@ -87,6 +87,8 @@ export class KelpgateClient {
   constructor(options: KelpgateClientOptions);
   readonly apiUrl: string;
   scanFile(source: ScanSource, options?: UploadOptions): Promise<ScanResult>;
+  scanBytes(bytes: Buffer | Uint8Array | ArrayBuffer, options?: UploadOptions): Promise<ScanResult>;
+  /** Alias of scanBytes, the name used before 0.2.0. */
   scanBuffer(bytes: Buffer | Uint8Array | ArrayBuffer, options?: UploadOptions): Promise<ScanResult>;
   scanUrl(url: string, options?: RequestOptions): Promise<ScanResult>;
   scanFileAsync(source: ScanSource, options?: AsyncUploadOptions): Promise<AcceptedScan>;

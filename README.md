@@ -55,7 +55,7 @@ if (result.infected) {
 }
 
 // or throw instead:
-assertClean(await kelpgate.scanBuffer(buffer, { filename: 'report.docx' }));
+assertClean(await kelpgate.scanBytes(buffer, { filename: 'report.docx' }));
 ```
 
 `fromEnv()` builds the same client from `KELPGATE_CLIENT_ID`, `KELPGATE_CLIENT_SECRET` (or `KELPGATE_TOKEN`) and the optional `KELPGATE_API_URL` / `KELPGATE_TOKEN_URL`.
@@ -65,7 +65,7 @@ assertClean(await kelpgate.scanBuffer(buffer, { filename: 'report.docx' }));
 | Method | What it does |
 | --- | --- |
 | `scanFile(source, opts)` | Scan a path, `Buffer`, `Uint8Array`, `Blob` or stream |
-| `scanBuffer(bytes, opts)` | Same, for bytes in memory |
+| `scanBytes(bytes, opts)` | Same, for bytes in memory (`scanBuffer` still works as an alias) |
 | `scanUrl(url)` | Kelpgate fetches the URL and scans it |
 | `scanFileAsync` / `scanUrlAsync` | Start a scan and get a `scanId`; pass `webhookUrl` to be called back |
 | `getAsyncResult(scanId)` | `{ pending: true }` until the verdict is ready |

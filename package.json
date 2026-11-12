@@ -1,6 +1,6 @@
 {
   "name": "@kelpgate/client",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Kelpgate Client for Node.js: scan files and URLs for malware with the Kelpgate API, with a CLI and Express middleware.",
   "license": "GPL-2.0-or-later",
   "author": "JustBots Labs",

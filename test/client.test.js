@@ -34,8 +34,13 @@ test('the client never serialises its credentials', () => {
   assert.ok(!JSON.stringify(c).includes('secret1'));
 });
 
-test('scanBuffer: clean file', async () => {
+test('scanBuffer stays as an alias of scanBytes', async () => {
   const r = await make().scanBuffer(Buffer.from('hello'), { filename: 'a.txt' });
+  assert.equal(r.infected, false);
+});
+
+test('scanBytes: clean file', async () => {
+  const r = await make().scanBytes(Buffer.from('hello'), { filename: 'a.txt' });
   assert.equal(r.infected, false);
   assert.equal(r.status, 'CLEAN');
   assert.equal(r.filename, 'a.txt');
@@ -62,14 +67,14 @@ test('scanFile accepts a stream and a Blob', async () => {
 });
 
 test('maxBytes is enforced before sending', async () => {
-  await assert.rejects(make({ maxBytes: 3 }).scanBuffer(Buffer.from('toolong')), K.PayloadTooLargeError);
+  await assert.rejects(make({ maxBytes: 3 }).scanBytes(Buffer.from('toolong')), K.PayloadTooLargeError);
 });
 
 test('token is cached across calls and shared by concurrent calls', async () => {
   const before = api.state.tokenCalls;
   const c = make();
-  await Promise.all([c.scanBuffer(Buffer.from('1')), c.scanBuffer(Buffer.from('2')), c.scanBuffer(Buffer.from('3'))]);
-  await c.scanBuffer(Buffer.from('4'));
+  await Promise.all([c.scanBytes(Buffer.from('1')), c.scanBytes(Buffer.from('2')), c.scanBytes(Buffer.from('3'))]);
+  await c.scanBytes(Buffer.from('4'));
   assert.equal(api.state.tokenCalls - before, 1);
 });
 
@@ -77,31 +82,31 @@ test('token is renewed ahead of expiry', async () => {
   const short = await startMockApi({ tokenTtl: 60 }); // under the 120 s refresh-ahead window
   try {
     const c = new K.KelpgateClient({ apiUrl: short.apiUrl, tokenUrl: short.tokenUrl, clientId: 'id1', clientSecret: 'secret1' });
-    await c.scanBuffer(Buffer.from('a'));
-    await c.scanBuffer(Buffer.from('b'));
+    await c.scanBytes(Buffer.from('a'));
+    await c.scanBytes(Buffer.from('b'));
     assert.equal(short.state.tokenCalls, 2);
   } finally { await short.close(); }
 });
 
 test('a revoked token is replaced once after a 401', async () => {
   const c = make();
-  await c.scanBuffer(Buffer.from('warm'));
+  await c.scanBytes(Buffer.from('warm'));
   api.state.validToken = 'something-else'; // server no longer accepts the cached token
   const tokensBefore = api.state.tokenCalls;
-  const r = await c.scanBuffer(Buffer.from('again'));
+  const r = await c.scanBytes(Buffer.from('again'));
   assert.equal(r.infected, false);
   assert.equal(api.state.tokenCalls, tokensBefore + 1);
 });
 
 test('wrong client secret gives AuthError', async () => {
   const c = make({ clientSecret: 'nope' });
-  await assert.rejects(c.scanBuffer(Buffer.from('x')), (e) => e instanceof K.AuthError && e.code === 'TOKEN_REQUEST_FAILED');
+  await assert.rejects(c.scanBytes(Buffer.from('x')), (e) => e instanceof K.AuthError && e.code === 'TOKEN_REQUEST_FAILED');
 });
 
 test('bearerToken skips the token endpoint', async () => {
   const before = api.state.tokenCalls;
   const c = new K.KelpgateClient({ apiUrl: api.apiUrl, bearerToken: 'static' });
-  await c.scanBuffer(Buffer.from('x'));
+  await c.scanBytes(Buffer.from('x'));
   assert.equal(api.state.tokenCalls, before);
 });
 
@@ -118,23 +123,23 @@ test('error mapping', async () => {
   ];
   for (const [status, body, Cls] of cases) {
     api.state.failNext.push({ status, body });
-    await assert.rejects(c.scanBuffer(Buffer.from('x')), (e) => e instanceof Cls && e.status === status && e.requestId === 'req-test', `status ${status}`);
+    await assert.rejects(c.scanBytes(Buffer.from('x')), (e) => e instanceof Cls && e.status === status && e.requestId === 'req-test', `status ${status}`);
   }
   api.state.failNext.push({ status: 402, body: { quota: 5, usage: 6, upgrade_url: 'https://u' } });
-  await assert.rejects(c.scanBuffer(Buffer.from('x')), (e) => e.quota === 5 && e.usage === 6 && e.upgradeUrl === 'https://u');
+  await assert.rejects(c.scanBytes(Buffer.from('x')), (e) => e.quota === 5 && e.usage === 6 && e.upgradeUrl === 'https://u');
 });
 
 test('retries 503 and honours Retry-After on 429, then succeeds', async () => {
   const c = make({ maxRetries: 2 });
   api.state.failNext.push({ status: 503 }, { status: 429, headers: { 'retry-after': '0' } });
-  const r = await c.scanBuffer(Buffer.from('ok'));
+  const r = await c.scanBytes(Buffer.from('ok'));
   assert.equal(r.infected, false);
 });
 
 test('gives up after maxRetries', async () => {
   const c = make({ maxRetries: 1 });
   api.state.failNext.push({ status: 503 }, { status: 503 }, { status: 503 });
-  await assert.rejects(c.scanBuffer(Buffer.from('x')), K.ServerError);
+  await assert.rejects(c.scanBytes(Buffer.from('x')), K.ServerError);
   api.state.failNext.length = 0;
 });
 
@@ -190,7 +195,7 @@ test('health needs no credentials', async () => {
 
 test('policy and degraded flags come from the signature text', async () => {
   const fake = async () => new Response(JSON.stringify({ 'av-status': 'INFECTED', 'av-signature': 'POLICY: macro | WARNING: yara did not complete - scan coverage reduced' }), { status: 406 });
-  const r = await new K.KelpgateClient({ apiUrl: api.apiUrl, bearerToken: 't', fetch: fake }).scanBuffer(Buffer.from('x'));
+  const r = await new K.KelpgateClient({ apiUrl: api.apiUrl, bearerToken: 't', fetch: fake }).scanBytes(Buffer.from('x'));
   assert.equal(r.policyRejected, true);
   assert.equal(r.degraded, true);
 });
