@@ -1,7 +1,7 @@
 {
   "name": "@kelpgate/client",
   "version": "0.1.0",
-  "description": "Node.js client for the Kelpgate malware-scanning API: scan files and URLs, sync or async, with a CLI and Express middleware.",
+  "description": "Kelpgate Client for Node.js: scan files and URLs for malware with the Kelpgate API, with a CLI and Express middleware.",
   "license": "GPL-2.0-or-later",
   "author": "Kelpgate",
   "homepage": "https://github.com/KelpGate/kelpgate-node#readme",
@@ -13,7 +13,17 @@
     "url": "https://github.com/KelpGate/kelpgate-node/issues",
     "email": "support@kelpgate.cloud"
   },
-  "keywords": ["kelpgate", "antivirus", "malware", "virus-scan", "clamav", "yara", "upload", "express", "multer"],
+  "keywords": [
+    "kelpgate",
+    "antivirus",
+    "malware",
+    "virus-scan",
+    "clamav",
+    "yara",
+    "upload",
+    "express",
+    "multer"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -21,12 +31,24 @@
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": { "types": "./index.d.ts", "default": "./index.mjs" },
-      "require": { "types": "./index.d.ts", "default": "./index.js" }
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
     },
     "./express": {
-      "import": { "types": "./express.d.ts", "default": "./express.mjs" },
-      "require": { "types": "./express.d.ts", "default": "./express.js" }
+      "import": {
+        "types": "./express.d.ts",
+        "default": "./express.mjs"
+      },
+      "require": {
+        "types": "./express.d.ts",
+        "default": "./express.js"
+      }
     },
     "./package.json": "./package.json"
   },

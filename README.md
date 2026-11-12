@@ -1,4 +1,4 @@
-# @kelpgate/client
+# Kelpgate Client for Node.js
 
 **Check every upload for malware before your app stores it.**
 
@@ -16,7 +16,7 @@ Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. 
 | --- | --- |
 | **One call per file** | Send a file, a buffer, a stream or a URL and get a verdict back. An infected file is a normal result, not an exception. |
 | **Credentials handled for you** | The OAuth 2.0 access token is fetched, cached in memory and renewed before it expires. |
-| **Predictable failure behaviour** | Typed errors for quota, size, file type, rate limits and network problems. You choose what happens when the scanner cannot answer: block or allow. |
+| **Predictable failure behavior** | Typed errors for quota, size, file type, rate limits and network problems. You choose what happens when the scanner cannot answer: block or allow. |
 | **Safe by default** | API and token URLs must use HTTPS, redirects are never followed, and secrets never appear in errors. |
 | **Ready for your stack** | Express and Multer middleware, a command line tool, CommonJS and ESM, and TypeScript types. |
 | **Light** | No runtime dependencies. |
@@ -33,11 +33,11 @@ Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. 
 npm install @kelpgate/client
 ```
 
-The package needs Node 18 or newer. You also need a Kelpgate account.
+The package is `@kelpgate/client` on npm and needs Node 18 or newer. You also need a Kelpgate account.
 
 ## Quick start
 
-Create an API client in the [Kelpgate console](https://console.kelpgate.cloud), then:
+Create an API client in the [Kelpgate Console](https://console.kelpgate.cloud), then:
 
 ```js
 const { KelpgateClient, assertClean } = require('@kelpgate/client');
@@ -85,11 +85,11 @@ All errors extend `KelpgateError` and carry `status`, `code`, `requestId` (quote
 
 | Error | When |
 | --- | --- |
-| `AuthError` | Bad credentials (401) or a suspended tenant (403) |
+| `AuthError` | Bad credentials (401) or a suspended organization (403) |
 | `QuotaExceededError` | Plan quota used up (402); has `quota`, `usage`, `upgradeUrl` |
 | `PayloadTooLargeError` | File over the plan limit (413) or the client's `maxBytes` |
 | `UnsupportedFileError` | File type not allowed, or encrypted archive (415) |
-| `RateLimitedError` | Too many concurrent scans (429); has `retryAfterSeconds` |
+| `RateLimitedError` | Too many scans at once (429); has `retryAfterSeconds` |
 | `ScanError` | Invalid request (400) or file could not be parsed (412) |
 | `ServerError` | 5xx |
 | `NetworkError`, `TimeoutError` | Could not reach the service |
@@ -148,7 +148,7 @@ Choose `block` where stopping malware matters more than availability, and `allow
 - **Secrets:** the client secret never appears in error messages or when a client is serialised. Keep it in an environment variable or a secrets manager, not in source control.
 - **Token handling:** access tokens are kept in memory only, never written to disk, and refreshed ahead of expiry. A rejected token is discarded and retried once.
 - **Nothing stored locally:** the package writes nothing to disk. The Express middleware deletes infected files that Multer saved.
-- **Data kept by the service:** files that scan clean are kept briefly and infected files are quarantined, according to your Kelpgate plan. That is the service's behaviour, not this package's.
+- **Data kept by the service:** files that scan clean are kept briefly and infected files are quarantined, according to your Kelpgate plan. That is the service's behavior, not this package's.
 
 ## Compatibility
 
@@ -170,7 +170,7 @@ The scan should report `INFECTED` and exit with code `1`. Then scan any ordinary
 | --- | --- |
 | `ConfigError`: must use https | `apiUrl` or `tokenUrl` is not HTTPS. Plain HTTP works only for `localhost`. |
 | `AuthError` with code `TOKEN_REQUEST_FAILED` | The client ID or secret is wrong, or the API client does not have the `scan` scope. |
-| `AuthError` with status 403 | The organisation is suspended, or the API client is not linked to an organisation. |
+| `AuthError` with status 403 | The organization is suspended, or the API client is not linked to an organization. |
 | `QuotaExceededError` | The plan's scan quota is used up. The error carries an `upgradeUrl`. |
 | `RateLimitedError`, or slow scans under load | Too many scans at once. The client retries and honours `Retry-After`; lower your concurrency. |
 | `PayloadTooLargeError` | The file is over the plan limit or the client's `maxBytes`. |

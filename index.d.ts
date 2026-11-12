@@ -46,7 +46,7 @@ export interface ScanResult {
   /** Detection name, or "OK" for a clean file. */
   signature: string;
   sha256?: string;
-  /** Authors of the rules that matched, for rule-licence attribution. */
+  /** Authors of the rules that matched, for rule-license attribution. */
   ruleAuthors: string[];
   filename?: string;
   scanId?: string;
