@@ -9,9 +9,13 @@ Node.js client for the [Kelpgate](https://kelpgate.cloud) malware-scanning API. 
 - Retries transient failures; typed errors for quota, size, file type and rate limits.
 - Express/Multer middleware and a `kelpgate` command line tool included.
 
+## Install
+
 ```bash
 npm install @kelpgate/client
 ```
+
+The package needs Node 18 or newer. You also need a Kelpgate account.
 
 ## Quick start
 
@@ -104,6 +108,18 @@ npx kelpgate health
 ```
 
 Exit code `0` clean, `1` infected, `2` error. Add `--json` for machine-readable output.
+
+## Compatibility
+
+Node 18, 20, 22 and 24, tested in CI on every change. The package has no runtime dependencies, works with both `require` and `import`, and ships TypeScript types that are type-checked in CI.
+
+## Support and versioning
+
+This project follows [Semantic Versioning](https://semver.org): breaking changes only in major versions, new features in minor versions, fixes in patch versions. Releases are tagged on GitHub, and user-visible changes are listed in the [changelog](CHANGELOG.md).
+
+Fixes, including security fixes, go into the latest release only, so upgrade to receive them. The tested runtime versions are listed under Compatibility. The client talks to version 1 of the Kelpgate API (`/api/v1`).
+
+For help, see [getting help](https://github.com/KelpGate/.github/blob/main/SUPPORT.md) or email support@kelpgate.cloud.
 
 ## Contributing and security
 
