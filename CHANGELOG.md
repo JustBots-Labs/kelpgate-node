@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Package metadata: author is JustBots Labs, and the repository, homepage and issue links point to github.com/KelpGate/kelpgate-node. No code changes.
+
 ## 0.1.0
 
 First release.
