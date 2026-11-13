@@ -9,6 +9,9 @@ async function main() {
   const done = await c.waitForResult(acc.scanId, { timeoutMs: 1000 });
   const p = await c.getAsyncResult('id');
   if (p.pending) { const id: string = p.scanId; void id; }
+  await c.scanFile('/tmp/x', { idempotencyKey: 'job-1' });
+  await c.scanUrl('https://x', { idempotencyKey: 'job-1' });
+  await c.scanUrlAsync('https://x', { idempotencyKey: 'job-1', webhookUrl: 'https://x' });
   try { await c.scanUrl('https://x'); } catch (e) { if (e instanceof QuotaExceededError) void e.upgradeUrl; }
   void sig; void done; void fromEnv(); void kelpgateScan({ client: c, onInfected: 'pass' });
 }

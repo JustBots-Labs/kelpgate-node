@@ -204,3 +204,73 @@ test('fromEnv uses production defaults', () => {
   const c = K.fromEnv({ KELPGATE_CLIENT_ID: 'a', KELPGATE_CLIENT_SECRET: 'b' });
   assert.equal(c.apiUrl, 'https://api.kelpgate.cloud');
 });
+
+// ---- Idempotency-Key
+
+const keyOf = (r) => r.headers['idempotency-key'];
+const scansTo = (url) => api.state.requests.filter((r) => r.url === url);
+
+test('idempotency: every scan sends a key, and the client\'s retries reuse it', async () => {
+  api.state.requests.length = 0;
+  api.state.failNext.push({ status: 503 }, { status: 502 });
+  await make().scanBytes(Buffer.from('hello'), { filename: 'a.txt' });
+  const sent = scansTo('/api/v1/scan/file');
+  assert.equal(sent.length, 3);
+  assert.match(keyOf(sent[0]), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  assert.equal(keyOf(sent[1]), keyOf(sent[0]));
+  assert.equal(keyOf(sent[2]), keyOf(sent[0]));
+});
+
+test('idempotency: separate calls get separate keys', async () => {
+  api.state.requests.length = 0;
+  const c = make();
+  await c.scanBytes(Buffer.from('one'), { filename: 'a.txt' });
+  await c.scanBytes(Buffer.from('two'), { filename: 'b.txt' });
+  const [a, b] = scansTo('/api/v1/scan/file');
+  assert.notEqual(keyOf(a), keyOf(b));
+});
+
+test('idempotency: the retry after a 401 reuses the same key', async () => {
+  api.state.requests.length = 0;
+  api.state.failNext.push({ status: 401 });
+  await make().scanBytes(Buffer.from('hello'), { filename: 'a.txt' });
+  const sent = scansTo('/api/v1/scan/file');
+  assert.equal(sent.length, 2);
+  assert.equal(keyOf(sent[1]), keyOf(sent[0]));
+});
+
+test('idempotency: a key you pass is sent as given on every scan operation', async () => {
+  api.state.requests.length = 0;
+  const c = make();
+  const idempotencyKey = 'job-42:upload.1';
+  await c.scanFile(Buffer.from('hello'), { filename: 'a.txt', idempotencyKey });
+  await c.scanUrl('https://example.com/f.bin', { idempotencyKey });
+  await c.scanFileAsync(Buffer.from('hello'), { filename: 'a.txt', idempotencyKey });
+  await c.scanUrlAsync('https://example.com/f.bin', { idempotencyKey });
+  for (const url of ['/api/v1/scan/file', '/api/v1/scan/url', '/api/v1/async-scan/file', '/api/v1/async-scan/url']) {
+    const [r] = scansTo(url);
+    assert.equal(keyOf(r), idempotencyKey, url);
+  }
+});
+
+test('idempotency: an invalid key is a ConfigError before any request is made', async () => {
+  const c = make();
+  for (const bad of ['', 'has space', 'a/b', 'x'.repeat(129), 'ünï', 123]) {
+    api.state.requests.length = 0;
+    await assert.rejects(c.scanFile(Buffer.from('hello'), { idempotencyKey: bad }), (e) => e instanceof K.ConfigError && e.code === 'CONFIG');
+    await assert.rejects(c.scanUrl('https://example.com/f.bin', { idempotencyKey: bad }), K.ConfigError);
+    assert.equal(api.state.requests.filter((r) => r.url.startsWith('/api/')).length, 0, `no request for ${JSON.stringify(bad)}`);
+  }
+  const longest = 'x'.repeat(128);
+  assert.equal((await c.scanFile(Buffer.from('hello'), { idempotencyKey: longest })).infected, false);
+});
+
+test('idempotency: calls that are not counted do not send a key', async () => {
+  api.state.requests.length = 0;
+  const c = make();
+  await c.health();
+  await c.getAsyncResult('scan-1');
+  const sent = api.state.requests.filter((r) => r.url.startsWith('/api/'));
+  assert.ok(sent.length >= 2);
+  for (const r of sent) assert.equal(keyOf(r), undefined, r.url);
+});
