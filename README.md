@@ -79,6 +79,18 @@ A scan result has `infected`, `status`, `signature`, `sha256`, `scanId`, `ruleAu
 
 An infected file is a normal result (`infected: true`), not an exception. Use `assertClean(result)` if you prefer one.
 
+### Retries and your quota
+
+Every scan call sends an `Idempotency-Key`. The client makes a random one for each call and reuses it on its own retries, so a retry after a timeout or a 502, 503 or 504 is not counted against your quota twice. You do not have to do anything.
+
+Pass `idempotencyKey` to protect retries you make yourself, for example one key per upload job:
+
+```js
+await kelpgate.scanFile(path, { idempotencyKey: `job-${job.id}` });
+```
+
+A key is 1 to 128 characters from `A-Za-z0-9._:-` (anything else throws `ConfigError`). The service ties a key to the file: the same key on a different file is counted as a new scan, so never reuse one key for different uploads.
+
 ## Errors
 
 All errors extend `KelpgateError` and carry `status`, `code`, `requestId` (quote it to support) and the response `body`.

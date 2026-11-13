@@ -29,7 +29,17 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-export interface UploadOptions extends RequestOptions {
+export interface ScanRequestOptions extends RequestOptions {
+  /**
+   * Makes retries safe: the service counts a request repeated under the same key only once.
+   * Defaults to a random UUID per call, reused by the client's own retries. 1 to 128 characters
+   * from A-Z a-z 0-9 . _ : - ; pass your own only to protect your own retries (a job id, for example),
+   * and never reuse one key for different files.
+   */
+  idempotencyKey?: string;
+}
+
+export interface UploadOptions extends ScanRequestOptions {
   /** Name sent with the file. Defaults to the path's basename or the Blob's name. */
   filename?: string;
 }
@@ -90,9 +100,9 @@ export class KelpgateClient {
   scanBytes(bytes: Buffer | Uint8Array | ArrayBuffer, options?: UploadOptions): Promise<ScanResult>;
   /** Alias of scanBytes, the name used before 0.2.0. */
   scanBuffer(bytes: Buffer | Uint8Array | ArrayBuffer, options?: UploadOptions): Promise<ScanResult>;
-  scanUrl(url: string, options?: RequestOptions): Promise<ScanResult>;
+  scanUrl(url: string, options?: ScanRequestOptions): Promise<ScanResult>;
   scanFileAsync(source: ScanSource, options?: AsyncUploadOptions): Promise<AcceptedScan>;
-  scanUrlAsync(url: string, options?: RequestOptions & { webhookUrl?: string }): Promise<AcceptedScan>;
+  scanUrlAsync(url: string, options?: ScanRequestOptions & { webhookUrl?: string }): Promise<AcceptedScan>;
   getAsyncResult(scanId: string, options?: RequestOptions & { kind?: 'file' | 'url' }): Promise<ScanResult | PendingResult>;
   waitForResult(scanId: string, options?: RequestOptions & { kind?: 'file' | 'url'; intervalMs?: number; timeoutMs?: number }): Promise<ScanResult>;
   health(): Promise<HealthResult>;
