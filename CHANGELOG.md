@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- Fix a slow regular expression when trimming trailing slashes from `apiUrl` and `tokenUrl`: a configured URL with a very long run of slashes could take tens of seconds to validate. The trailing slashes are now trimmed in a loop. Normal URLs behave as before.
+- Continuous integration: install the type-check tools with exact versions and without lifecycle scripts, and give the publish job its own permissions.
+
 ## 0.4.0
 
 - Every scan now sends an `Idempotency-Key`, so a retry after a timeout or a 502, 503 or 504 is not counted against your quota twice. The client makes a random key for each call and reuses it on its own retries; no change is needed in your code.
