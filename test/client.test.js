@@ -274,3 +274,12 @@ test('idempotency: calls that are not counted do not send a key', async () => {
   assert.ok(sent.length >= 2);
   for (const r of sent) assert.equal(keyOf(r), undefined, r.url);
 });
+
+test('trailing slashes on configured URLs are trimmed, even a very long run of them', () => {
+  const make = (apiUrl) => new K.KelpgateClient({ apiUrl, tokenUrl: 'https://auth.example.com/oauth2/token', clientId: 'a', clientSecret: 'b' });
+  assert.equal(make('https://api.example.com').apiUrl, 'https://api.example.com');
+  assert.equal(make('https://api.example.com/v1///').apiUrl, 'https://api.example.com/v1');
+  const started = Date.now();
+  make('https://api.example.com/p' + '/'.repeat(200000) + 'x?q');
+  assert.ok(Date.now() - started < 1000, 'trimming must not backtrack');
+});
